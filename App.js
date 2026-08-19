@@ -1,20 +1,20 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import LoginScreen from './src/screens/LoginScreen';
 
 export default function App() {
+  const handleLoginSuccess = () => {
+    console.log('Login exitoso ✅ (aquí después navegaremos a Home)');
+  };
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+    <View style={styles.flex}>
+      <LoginScreen onLoginSuccess={handleLoginSuccess} />
       <StatusBar style="auto" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  flex: { flex: 1 },
 });
