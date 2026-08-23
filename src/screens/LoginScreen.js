@@ -1,4 +1,3 @@
-// src/screens/LoginScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -9,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../theme/colors';
@@ -56,12 +56,13 @@ export default function LoginScreen({ onLoginSuccess }) {
       >
         <ScrollView contentContainerStyle={styles.container}>
           {/* Logo */}
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoEmoji}>🌿</Text>
-          </View>
+          <Image
+            source={require('../../assets/asentli-logo.jpg')}
+            style={styles.logo}
+          />
+
           <Text style={styles.title}>Welcome to Asentli</Text>
           <Text style={styles.subtitle}>Fintech familiar</Text>
-
           {/* Card */}
           <View style={styles.card}>
             <View style={styles.field}>
@@ -147,31 +148,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 40,
   },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.card,
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
-  logoEmoji: { fontSize: 28 },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'center',
+  logo: {
+  width: 110,
+  height: 110,
+  borderRadius: 55,
+  resizeMode: 'cover',
+  marginBottom: 20,
+  marginLeft: 100,
   },
   subtitle: {
     fontSize: 13,
     color: colors.textLight,
+    textAlign: 'center',
+    marginBottom: 28,
+  },
+  title: {
+    fontSize: 20,
     textAlign: 'center',
     marginBottom: 28,
   },
