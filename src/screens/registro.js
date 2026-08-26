@@ -35,9 +35,9 @@ export default function RegisterScreen({ onRegisterSuccess }) {
 
     if (!password) {
       newErrors.password = "La contraseña es obligatoria";
-    } else if (password.length < 6) {
+    } else if (password.length < 8) {
       newErrors.password =
-        "La contraseña debe tener al menos 6 caracteres";
+        "La contraseña debe tener al menos 8 caracteres";
     }
 
     if (password !== confirmPassword) {
@@ -89,7 +89,7 @@ export default function RegisterScreen({ onRegisterSuccess }) {
 
         case "auth/weak-password":
           mensaje =
-            "La contraseña debe tener al menos 6 caracteres";
+            "La contraseña debe tener al menos 8 caracteres";
           break;
 
         default:
