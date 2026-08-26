@@ -3,6 +3,3 @@ node_modules/
 dist/
 web-build/
 .env
-
-#base de datos
-config.js
