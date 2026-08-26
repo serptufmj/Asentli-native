@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
     "expo": "~57.0.13",
     "expo-linear-gradient": "~57.0.1",
     "expo-status-bar": "~57.0.1",
