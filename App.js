@@ -6,6 +6,10 @@ import TermsScreen from './src/screens/TermsScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import CardScreen from './src/screens/CardScreen';
 import AIAssistantScreen from './src/screens/AIAssistantScreen';
+
+import LoginScreen from './src/screens/LoginScreen';
+import ForgotPasswordScreen from './src/screens/forgotpasswordscreen';
+=======
 import PlaceholderScreen from './src/screens/PlaceholderScreen';
 
 export default function App() {
@@ -16,7 +20,19 @@ export default function App() {
       {screen === 'welcome' && (
         <WelcomeScreen onContinue={() => setScreen('terms')} />
       )}
-      {screen === 'terms' && <TermsScreen onAccept={() => setScreen('home')} />}
+      {screen === 'terms' && <TermsScreen onAccept={() => setScreen('login')} />}
+        {screen === 'login' && (
+  <LoginScreen
+    onLoginSuccess={() => setScreen('home')}
+    onForgotPassword={() => setScreen('forgot')}
+  />
+)}
+
+{screen === 'forgot' && (
+  <ForgotPasswordScreen
+    onBack={() => setScreen('login')}
+  />
+)}
       {screen === 'home' && (
         <HomeScreen
           onMyCardPress={() => setScreen('card')}

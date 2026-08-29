@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../theme/colors';
 
-export default function LoginScreen({ onLoginSuccess }) {
+  export default function LoginScreen({ onLoginSuccess, onForgotPassword }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -85,9 +85,9 @@ export default function LoginScreen({ onLoginSuccess }) {
             <View style={styles.field}>
               <View style={styles.passwordHeader}>
                 <Text style={styles.label}>Password</Text>
-                <TouchableOpacity>
-                  <Text style={styles.forgotLink}>Forgot password?</Text>
-                </TouchableOpacity>
+                <TouchableOpacity onPress={onForgotPassword}>
+                 <Text style={styles.forgotLink}>Forgot password?</Text>
+                </TouchableOpacity> 
               </View>
               <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
                 <Text style={styles.icon}>🔒</Text>
