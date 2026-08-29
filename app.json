@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Name",
-    "slug": "Name",
+    "name": "Asentli",
+    "slug": "Asentli",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/asentli-logo.jpg",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true

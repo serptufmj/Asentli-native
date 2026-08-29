@@ -6,6 +6,7 @@ import TermsScreen from './src/screens/TermsScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import CardScreen from './src/screens/CardScreen';
 import AIAssistantScreen from './src/screens/AIAssistantScreen';
+import PlaceholderScreen from './src/screens/PlaceholderScreen';
 
 export default function App() {
   const [screen, setScreen] = useState('welcome');
@@ -20,10 +21,26 @@ export default function App() {
         <HomeScreen
           onMyCardPress={() => setScreen('card')}
           onAIAssistantPress={() => setScreen('ai')}
+          onBellPress={() => setScreen('notifications')}
+          onStatisticsPress={() => setScreen('statistics')}
+          onBasketPress={() => setScreen('basket')}
+          onProfilePress={() => setScreen('profile')}
         />
       )}
       {screen === 'card' && <CardScreen onBack={() => setScreen('home')} />}
       {screen === 'ai' && <AIAssistantScreen onBack={() => setScreen('home')} />}
+      {screen === 'notifications' && (
+        <PlaceholderScreen title="Notifications" onBack={() => setScreen('home')} />
+      )}
+      {screen === 'statistics' && (
+        <PlaceholderScreen title="Statistics" onBack={() => setScreen('home')} />
+      )}
+      {screen === 'basket' && (
+        <PlaceholderScreen title="Basket" onBack={() => setScreen('home')} />
+      )}
+      {screen === 'profile' && (
+        <PlaceholderScreen title="Profile" onBack={() => setScreen('home')} />
+      )}
       <StatusBar style="auto" />
     </View>
   );
