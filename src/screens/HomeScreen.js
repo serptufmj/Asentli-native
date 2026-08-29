@@ -1,8 +1,7 @@
-// src/screens/HomeScreen.js
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { colors } from '../theme/colors';
-import { Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const weeks = [
     { label: 'Week 1', height: 40, color: colors.saladGreen },
@@ -12,27 +11,26 @@ const weeks = [
 ];
 
 const tabs = [
-    { key: 'Home', icon: '🏠' },
-    { key: 'Statistics', icon: '📊' },
-    { key: 'Basket', icon: '🛒' },
-    { key: 'Profile', icon: '👤' },
+    { key: 'Home', icon: 'home' },
+    { key: 'Statistics', icon: 'bar-chart' },
+    { key: 'Basket', icon: 'cart' },
+    { key: 'Profile', icon: 'person' },
 ];
 
-
-export default function HomeScreen({ onMyCardPress, onAIAssistantPress }) {
+export default function HomeScreen({ onMyCardPress, onAIAssistantPress, onBellPress, onStatisticsPress, onBasketPress, onProfilePress, }) {
     const [activeTab, setActiveTab] = useState('Home');
 
     return (
         <View style={styles.flex}>
-            {/* Header */}
             <View style={styles.header}>
-                <Image
-                    source={require('../../assets/asentli-logo.jpg')}
-                    style={{ width: 40, height: 40, borderRadius: 20 }}
-                    resizeMode="contain"
-                />
                 <Text style={styles.headerTitle}>Asentli</Text>
-                <Text style={styles.bellIcon}>🔔</Text>
+                <TouchableOpacity onPress={onBellPress}>
+                    <Image
+                        source={require('../../assets/bell-icon.jpg')}
+                        style={styles.bellIconImage}
+                        resizeMode="contain"
+                    />
+                </TouchableOpacity>
             </View>
 
             {/* Content */}
@@ -65,12 +63,20 @@ export default function HomeScreen({ onMyCardPress, onAIAssistantPress }) {
                 {/* Action buttons */}
                 <View style={styles.actionsRow}>
                     <TouchableOpacity style={[styles.actionButton, styles.aiButton]} onPress={onAIAssistantPress}>
-                        <Text style={styles.actionIcon}>🤖</Text>
+                        <Image
+                            source={require('../../assets/IA-icon.jpg')}
+                            style={styles.actionIconImage}
+                            resizeMode="contain"
+                        />
                         <Text style={styles.actionText}>AI Assistant</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.actionButton, styles.cardButton]}
                         onPress={onMyCardPress}>
-                        <Text style={styles.actionIcon}>💳</Text>
+                        <Image
+                            source={require('../../assets/card-icon.jpg')}
+                            style={styles.actionIconImage}
+                            resizeMode="contain"
+                        />
                         <Text style={[styles.actionText, { color: colors.card }]}>
                             My Card
                         </Text>
@@ -85,7 +91,11 @@ export default function HomeScreen({ onMyCardPress, onAIAssistantPress }) {
 
                 <View style={styles.storeCard}>
                     <View style={styles.storeLogo}>
-                        <Text style={{ fontSize: 20 }}>🛒</Text>
+                        <Image
+                            source={require('../../assets/basket-icon.jpg')}
+                            style={styles.storeLogoImage}
+                            resizeMode="contain"
+                        />
                     </View>
                     <View style={styles.storeInfo}>
                         <Text style={styles.storeName}>Súper Selectos</Text>
@@ -110,9 +120,18 @@ export default function HomeScreen({ onMyCardPress, onAIAssistantPress }) {
                     <TouchableOpacity
                         key={tab.key}
                         style={styles.tabButton}
-                        onPress={() => setActiveTab(tab.key)}
+                        onPress={() => {
+                            setActiveTab(tab.key);
+                            if (tab.key === 'Statistics') onStatisticsPress();
+                            if (tab.key === 'Basket') onBasketPress();
+                            if (tab.key === 'Profile') onProfilePress();
+                        }}
                     >
-                        <Text style={styles.tabIcon}>{tab.icon}</Text>
+                        <Ionicons
+                            name={tab.icon}
+                            size={22}
+                            color={activeTab === tab.key ? colors.card : '#8FA89C'}
+                        />
                         <Text
                             style={[
                                 styles.tabLabel,
@@ -144,7 +163,7 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         color: colors.bottleGreen,
     },
-    bellIcon: { fontSize: 20 },
+    bellIconImage: { width: 22, height: 22 },
     content: { padding: 20, paddingBottom: 20 },
 
     budgetCard: {
@@ -187,6 +206,9 @@ const styles = StyleSheet.create({
     cardButton: { backgroundColor: colors.bottleGreen },
     actionIcon: { fontSize: 20, marginBottom: 6 },
     actionText: { color: colors.card, fontWeight: '600', fontSize: 13 },
+
+    actionIconImage: { width: 26, height: 26, marginBottom: 6 },
+    storeLogoImage: { width: 26, height: 26 },
 
     sectionHeaderRow: {
         flexDirection: 'row',
