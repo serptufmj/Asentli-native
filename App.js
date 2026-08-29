@@ -17,7 +17,7 @@ export default function App() {
       {screen === 'welcome' && (
         <WelcomeScreen onContinue={() => setScreen('terms')} />
       )}
-      {screen === 'terms' && <TermsScreen onAccept={() => setScreen('home')} />}
+      {screen === 'terms' && <TermsScreen onAccept={() => setScreen('login')} />}
         {screen === 'login' && (
   <LoginScreen
     onLoginSuccess={() => setScreen('home')}
