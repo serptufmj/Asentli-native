@@ -1,18 +1,27 @@
--- Asentli — manual expense tracking (Clerk-authenticated, no Supabase Auth)
+-- ============================================================================
+-- Asentli — expenses + budgets  (manual expense tracking, Clerk-authenticated)
+-- ============================================================================
+-- HOW TO RUN: paste this whole file into the Supabase SQL Editor and press Run.
+--             Do NOT run it through `supabase db push` unless your existing
+--             schema (usuario, compra, billetera, ...) is already recorded in
+--             migration history — see supabase/MIGRATION_NOTES.md.
 --
--- These two tables are INTENTIONALLY separate from the existing
--- compra / transaccion / billetera / cashback model:
---   * they are keyed by the Clerk user id (text), not usuario.id_usuario (int)
---   * expenses allow a free-text merchant and a spending category
---   * manual entry only for now; `source` is ready for a future receipt/OCR flow
--- Converging them with `compra` is a later decision for the team.
+-- WHAT THIS CREATES:  exactly two tables — public.expenses and public.budgets.
+-- WHAT THIS TOUCHES:  nothing else. It does NOT create, alter or drop
+--                     `usuario`, `compra`, `transaccion`, `billetera`,
+--                     `cashback`, `comercio`, `producto`, `detalle_compra`,
+--                     `lista_compra` or `direccion`.
 --
--- Auth model: the mobile app sends the Clerk session token as the Supabase
--- access token. Inside Postgres, `auth.jwt() ->> 'sub'` is the Clerk user id.
--- Requires the Clerk <-> Supabase third-party auth integration to be enabled
--- (see MIGRATION_NOTES / the message that came with this file).
+-- Safe to run more than once: every statement is guarded
+-- (`create table if not exists`, `create index if not exists`,
+--  `drop policy if exists` before each `create policy`).
+--
+-- Auth model: the app sends the Clerk session token as the Supabase access
+-- token, so inside Postgres `auth.jwt() ->> 'sub'` is the Clerk user id.
+-- Requires the Clerk <-> Supabase third-party auth integration (MIGRATION_NOTES).
+-- ============================================================================
 
--- ============================================================ expenses
+-- ------------------------------------------------------------------ expenses
 create table if not exists public.expenses (
   id          uuid primary key default gen_random_uuid(),
   user_id     text not null,                                   -- Clerk user id ("user_xxx")
@@ -53,7 +62,7 @@ create policy expenses_delete_own on public.expenses
   for delete to authenticated
   using ((select auth.jwt() ->> 'sub') = user_id);
 
--- ============================================================ budgets
+-- ------------------------------------------------------------------- budgets
 create table if not exists public.budgets (
   user_id       text primary key,                              -- Clerk user id
   monthly_total numeric(12,2) not null default 0 check (monthly_total >= 0),
@@ -79,3 +88,8 @@ create policy budgets_update_own on public.budgets
   for update to authenticated
   using ((select auth.jwt() ->> 'sub') = user_id)
   with check ((select auth.jwt() ->> 'sub') = user_id);
+
+-- ------------------------------------------------------------------- verify
+-- (optional) run this after: should return 2 rows, both with rowsecurity = true
+--   select relname, relrowsecurity
+--   from pg_class where relname in ('expenses','budgets');
