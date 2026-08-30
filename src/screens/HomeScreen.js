@@ -1,169 +1,124 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
-import { colors } from '../theme/colors';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../theme/colors';
+import ScreenHeader from '../components/ScreenHeader';
+import BottomNav from '../components/BottomNav';
+import Fab from '../components/Fab';
+import { useBudget, useMonthExpenses } from '../hooks/useExpenseData';
+import { sumAmount, weeklyBars } from '../lib/expenseMath';
+import { formatMoney } from '../lib/dates';
 
-const weeks = [
-    { label: 'Week 1', height: 40, color: colors.saladGreen },
-    { label: 'Week 2', height: 70, color: colors.bottleGreen },
-    { label: 'Week 3', height: 100, color: colors.primary },
-    { label: 'Week 4', height: 55, color: '#F5C9A8' },
-];
+const BAR_COLORS = [colors.saladGreen, colors.bottleGreen, colors.primary, '#F5C9A8'];
 
-const tabs = [
-    { key: 'Home', icon: 'home' },
-    { key: 'Statistics', icon: 'bar-chart' },
-    { key: 'Basket', icon: 'cart' },
-    { key: 'Profile', icon: 'person' },
-];
+export default function HomeScreen({ onNavigate, onAddExpense }) {
+    const go = (key) => onNavigate && onNavigate(key);
 
-export default function HomeScreen({ onMyCardPress, onAIAssistantPress, onBellPress, onStatisticsPress, onBasketPress, onProfilePress, }) {
-    const [activeTab, setActiveTab] = useState('Home');
+    const budgetQ = useBudget();
+    const expensesQ = useMonthExpenses();
+
+    const loading = budgetQ.isLoading || expensesQ.isLoading;
+    const monthlyTotal = budgetQ.data?.monthlyTotal ?? 0;
+    const expenses = expensesQ.data ?? [];
+    const spent = sumAmount(expenses);
+    const bars = weeklyBars(expenses);
+    const maxBar = Math.max(...bars.map((b) => b.amount), 0);
+    const hasData = spent > 0 || monthlyTotal > 0;
 
     return (
         <View style={styles.flex}>
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Asentli</Text>
-                <TouchableOpacity onPress={onBellPress}>
-                    <Image
-                        source={require('../../assets/bell-icon.jpg')}
-                        style={styles.bellIconImage}
-                        resizeMode="contain"
-                    />
-                </TouchableOpacity>
-            </View>
+            <ScreenHeader title="Asentli" onBell={() => go('notifications')} />
 
-            {/* Content */}
             <ScrollView contentContainerStyle={styles.content}>
                 {/* Budget card */}
-                <View style={styles.budgetCard}>
+                <TouchableOpacity activeOpacity={0.9} style={styles.budgetCard} onPress={() => go('budgetDetails')}>
                     <View style={styles.budgetHeaderRow}>
                         <Text style={styles.budgetTitle}>Household budget</Text>
-                        <Text style={styles.budgetAmount}>$142.50</Text>
+                        {loading ? (
+                            <ActivityIndicator size="small" color={colors.primary} />
+                        ) : (
+                            <Text style={styles.budgetAmount}>{formatMoney(spent)}</Text>
+                        )}
                     </View>
                     <Text style={styles.budgetSubtitle}>
-                        Your spending this month of $200.00
+                        {loading
+                            ? 'Loading your spending…'
+                            : monthlyTotal > 0
+                            ? `Your spending this month of ${formatMoney(monthlyTotal)}`
+                            : 'Set a monthly budget to track your spending'}
                     </Text>
 
                     <View style={styles.chartRow}>
-                        {weeks.map((w) => (
-                            <View key={w.label} style={styles.barColumn}>
-                                <View
-                                    style={[
-                                        styles.bar,
-                                        { height: w.height, backgroundColor: w.color },
-                                    ]}
-                                />
-                                <Text style={styles.barLabel}>{w.label}</Text>
-                            </View>
-                        ))}
+                        {bars.map((b, i) => {
+                            const height = maxBar > 0 ? 8 + (b.amount / maxBar) * 92 : 6;
+                            return (
+                                <View key={b.label} style={styles.barColumn}>
+                                    <View
+                                        style={[
+                                            styles.bar,
+                                            { height, backgroundColor: BAR_COLORS[i % BAR_COLORS.length] },
+                                        ]}
+                                    />
+                                    <Text style={styles.barLabel}>{b.label}</Text>
+                                </View>
+                            );
+                        })}
                     </View>
-                </View>
+                    {!loading && !hasData && (
+                        <Text style={styles.emptyHint}>Aún no tienes gastos registrados este mes.</Text>
+                    )}
+                </TouchableOpacity>
 
                 {/* Action buttons */}
                 <View style={styles.actionsRow}>
-                    <TouchableOpacity style={[styles.actionButton, styles.aiButton]} onPress={onAIAssistantPress}>
-                        <Image
-                            source={require('../../assets/IA-icon.jpg')}
-                            style={styles.actionIconImage}
-                            resizeMode="contain"
-                        />
+                    <TouchableOpacity style={[styles.actionButton, styles.aiButton]} onPress={() => go('ai')}>
+                        <Ionicons name="sparkles" size={24} color={colors.card} style={styles.actionIcon} />
                         <Text style={styles.actionText}>AI Assistant</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionButton, styles.cardButton]}
-                        onPress={onMyCardPress}>
-                        <Image
-                            source={require('../../assets/card-icon.jpg')}
-                            style={styles.actionIconImage}
-                            resizeMode="contain"
-                        />
-                        <Text style={[styles.actionText, { color: colors.card }]}>
-                            My Card
-                        </Text>
+                    <TouchableOpacity style={[styles.actionButton, styles.cardButton]} onPress={() => go('card')}>
+                        <Ionicons name="card" size={24} color={colors.card} style={styles.actionIcon} />
+                        <Text style={[styles.actionText, { color: colors.card }]}>My Card</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Affiliated stores */}
                 <View style={styles.sectionHeaderRow}>
                     <Text style={styles.sectionTitle}>Affiliated Stores</Text>
-                    <Text style={styles.seeAll}>See All</Text>
+                    <TouchableOpacity onPress={() => go('affiliated')}>
+                        <Text style={styles.seeAll}>See All</Text>
+                    </TouchableOpacity>
                 </View>
 
-                <View style={styles.storeCard}>
+                <TouchableOpacity activeOpacity={0.9} style={styles.storeCard} onPress={() => go('affiliated')}>
                     <View style={styles.storeLogo}>
-                        <Image
-                            source={require('../../assets/basket-icon.jpg')}
-                            style={styles.storeLogoImage}
-                            resizeMode="contain"
-                        />
+                        <Ionicons name="storefront" size={22} color={colors.bottleGreen} />
                     </View>
                     <View style={styles.storeInfo}>
                         <Text style={styles.storeName}>Súper Selectos</Text>
                         <Text style={styles.storeDetail}>5% Cashback en Canasta</Text>
                         <Text style={styles.storeDistance}>📍 A 500m from you</Text>
                     </View>
-                </View>
+                    <Ionicons name="chevron-forward" size={18} color={colors.textLight} />
+                </TouchableOpacity>
 
                 {/* Offer banner */}
-                <View style={styles.offerCard}>
+                <TouchableOpacity activeOpacity={0.9} style={styles.offerCard} onPress={() => go('availableOffers')}>
                     <Text style={styles.offerLabel}>OFERTA DEL DÍA</Text>
                     <Text style={styles.offerText}>
                         Ahorra $5 en tu próxima compra de lácteos
                     </Text>
                     <Text style={styles.offerLink}>Válido en tiendas afiliadas</Text>
-                </View>
+                </TouchableOpacity>
             </ScrollView>
 
-            {/* Bottom nav */}
-            <View style={styles.bottomNav}>
-                {tabs.map((tab) => (
-                    <TouchableOpacity
-                        key={tab.key}
-                        style={styles.tabButton}
-                        onPress={() => {
-                            setActiveTab(tab.key);
-                            if (tab.key === 'Statistics') onStatisticsPress();
-                            if (tab.key === 'Basket') onBasketPress();
-                            if (tab.key === 'Profile') onProfilePress();
-                        }}
-                    >
-                        <Ionicons
-                            name={tab.icon}
-                            size={22}
-                            color={activeTab === tab.key ? colors.card : '#8FA89C'}
-                        />
-                        <Text
-                            style={[
-                                styles.tabLabel,
-                                activeTab === tab.key && styles.tabLabelActive,
-                            ]}
-                        >
-                            {tab.key}
-                        </Text>
-                        {activeTab === tab.key && <View style={styles.tabDot} />}
-                    </TouchableOpacity>
-                ))}
-            </View>
+            <Fab onPress={onAddExpense} label="Add expense" />
+            <BottomNav active="Home" onNavigate={onNavigate} />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     flex: { flex: 1, backgroundColor: colors.card },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 50,
-        paddingBottom: 16,
-    },
-    headerTitle: {
-        fontSize: 22,
-        fontWeight: '800',
-        color: colors.bottleGreen,
-    },
-    bellIconImage: { width: 22, height: 22 },
     content: { padding: 20, paddingBottom: 20 },
 
     budgetCard: {
@@ -193,6 +148,7 @@ const styles = StyleSheet.create({
     barColumn: { alignItems: 'center' },
     bar: { width: 26, borderRadius: 6 },
     barLabel: { fontSize: 10, color: colors.textLight, marginTop: 6 },
+    emptyHint: { fontSize: 11, color: colors.textLight, marginTop: 12, textAlign: 'center' },
 
     actionsRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
     actionButton: {
@@ -204,11 +160,8 @@ const styles = StyleSheet.create({
     },
     aiButton: { backgroundColor: colors.primary },
     cardButton: { backgroundColor: colors.bottleGreen },
-    actionIcon: { fontSize: 20, marginBottom: 6 },
+    actionIcon: { marginBottom: 6 },
     actionText: { color: colors.card, fontWeight: '600', fontSize: 13 },
-
-    actionIconImage: { width: 26, height: 26, marginBottom: 6 },
-    storeLogoImage: { width: 26, height: 26 },
 
     sectionHeaderRow: {
         flexDirection: 'row',
@@ -253,24 +206,4 @@ const styles = StyleSheet.create({
     },
     offerText: { fontSize: 14, fontWeight: '600', color: colors.text },
     offerLink: { fontSize: 11, color: colors.textLight, marginTop: 6 },
-
-    bottomNav: {
-        flexDirection: 'row',
-        backgroundColor: colors.bottleGreen,
-        paddingTop: 12,
-        paddingBottom: 24,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-    },
-    tabButton: { flex: 1, alignItems: 'center' },
-    tabIcon: { fontSize: 20, marginBottom: 4 },
-    tabLabel: { fontSize: 11, color: '#8FA89C' },
-    tabLabelActive: { color: colors.card, fontWeight: '700' },
-    tabDot: {
-        width: 4,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: colors.primary,
-        marginTop: 4,
-    },
 });

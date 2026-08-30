@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../theme/colors';
 
-export default function WelcomeScreen({ onContinue }) {
+export default function WelcomeScreen({ onSignUp, onSignIn }) {
     return (
         <LinearGradient
             colors={[colors.gradientTop, '#FFFFFF']}
@@ -23,11 +23,11 @@ export default function WelcomeScreen({ onContinue }) {
                 <Text style={styles.tagline}>FINTECH FAMILIAR</Text>
 
                 <View style={styles.buttonsWrapper}>
-                    <TouchableOpacity style={styles.signUpButton} onPress={onContinue}>
+                    <TouchableOpacity style={styles.signUpButton} onPress={onSignUp}>
                         <Text style={styles.signUpText}>Sign up</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.signInButton} onPress={onContinue}>
+                    <TouchableOpacity style={styles.signInButton} onPress={onSignIn}>
                         <Text style={styles.signInText}>Sign in</Text>
                     </TouchableOpacity>
                 </View>
