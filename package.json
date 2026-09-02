@@ -7,27 +7,19 @@
     "@expo/vector-icons": "^15.0.2",
     "@react-native-community/datetimepicker": "9.1.0",
     "@supabase/supabase-js": "^2.112.4",
-<<<<<<< HEAD
-    "expo": "~57.0.19",
-=======
     "@tanstack/react-query": "^5.102.8",
-    "expo": "~57.0.13",
+    "expo": "~57.0.19",
     "expo-auth-session": "~57.0.10",
     "expo-crypto": "~57.0.2",
->>>>>>> d229e46823e08f2677f828ebcaaa6d7d3d7b1ca7
     "expo-linear-gradient": "~57.0.1",
     "expo-secure-store": "~57.0.2",
     "expo-status-bar": "~57.0.1",
     "expo-web-browser": "~57.0.2",
     "firebase": "^12.17.1",
     "react": "19.2.3",
-<<<<<<< HEAD
-    "react-native": "0.86.3"
-=======
     "react-dom": "^19.2.3",
-    "react-native": "0.86.2",
+    "react-native": "0.86.3",
     "react-native-svg": "15.15.4"
->>>>>>> d229e46823e08f2677f828ebcaaa6d7d3d7b1ca7
   },
   "scripts": {
     "start": "expo start",
