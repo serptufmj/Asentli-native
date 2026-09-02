@@ -9,6 +9,8 @@ import {
   TextInput,
 } from 'react-native';
 import { colors } from '../theme/colors';
+import ScreenHeader from '../components/ScreenHeader';
+import BottomNav from '../components/BottomNav';
 
 const bars = [
   { label: 'Mon', value: '$12', height: 45, solid: false },
@@ -18,27 +20,13 @@ const bars = [
   { label: 'Fri', value: '$20', height: 75, solid: false, dashed: true },
 ];
 
-const tabs = [
-  { key: 'Home', icon: '🏠' },
-  { key: 'Statistics', icon: '📊' },
-  { key: 'Basket', icon: '🛒' },
-  { key: 'Profile', icon: '👤' },
-];
-
-export default function AIAssistantScreen({ onBack }) {
-  const [activeTab, setActiveTab] = useState('Basket');
+export default function AIAssistantScreen({ onBack, onNavigate }) {
   const [message, setMessage] = useState('');
+  const go = (key) => onNavigate && onNavigate(key);
 
   return (
     <View style={styles.flex}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Asentli IA</Text>
-        <Text style={styles.bellIcon}>🔔</Text>
-      </View>
+      <ScreenHeader title="Asentli IA" onBack={onBack} onBell={() => go('notifications')} />
 
       <ScrollView contentContainerStyle={styles.content}>
         {/* Greeting bubble */}
@@ -116,8 +104,8 @@ export default function AIAssistantScreen({ onBack }) {
 
         {/* Quick suggestions */}
         <View style={styles.quickRow}>
-          <TouchableOpacity style={styles.quickButton}>
-            <Text style={styles.quickText}>↘ ¿Cómo gasto menos?</Text>
+          <TouchableOpacity style={styles.quickButton} onPress={() => go('priceComparer')}>
+            <Text style={styles.quickText}>↘ Ver la comparación</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickButton}>
             <Text style={styles.quickText}>🧾 Subir ticket</Text>
@@ -143,44 +131,13 @@ export default function AIAssistantScreen({ onBack }) {
         </Text>
       </ScrollView>
 
-      {/* Bottom nav */}
-      <View style={styles.bottomNav}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab.key}
-            style={styles.tabButton}
-            onPress={() => setActiveTab(tab.key)}
-          >
-            <Text style={styles.tabIcon}>{tab.icon}</Text>
-            <Text
-              style={[
-                styles.tabLabel,
-                activeTab === tab.key && styles.tabLabelActive,
-              ]}
-            >
-              {tab.key}
-            </Text>
-            {activeTab === tab.key && <View style={styles.tabDot} />}
-          </TouchableOpacity>
-        ))}
-      </View>
+      <BottomNav active="Basket" onNavigate={onNavigate} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 16,
-  },
-  backArrow: { fontSize: 22, color: colors.bottleGreen },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: colors.bottleGreen },
-  bellIcon: { fontSize: 20 },
 
   content: { paddingHorizontal: 20, paddingBottom: 20 },
 
@@ -299,25 +256,5 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     textAlign: 'center',
     marginBottom: 10,
-  },
-
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: colors.bottleGreen,
-    paddingTop: 12,
-    paddingBottom: 24,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  tabButton: { flex: 1, alignItems: 'center' },
-  tabIcon: { fontSize: 20, marginBottom: 4 },
-  tabLabel: { fontSize: 11, color: '#8FA89C' },
-  tabLabelActive: { color: colors.card, fontWeight: '700' },
-  tabDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.primary,
-    marginTop: 4,
   },
 });

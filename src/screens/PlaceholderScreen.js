@@ -1,38 +1,26 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
+import ScreenHeader from '../components/ScreenHeader';
+import BottomNav from '../components/BottomNav';
 
-export default function PlaceholderScreen({ title, onBack }) {
+export default function PlaceholderScreen({ title, onBack, onNavigate, activeTab }) {
   return (
     <View style={styles.flex}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{title}</Text>
-        <View style={{ width: 22 }} />
-      </View>
+      <ScreenHeader title={title} onBack={onBack} />
 
       <View style={styles.content}>
         <Text style={styles.emoji}>🚧</Text>
         <Text style={styles.message}>Esta pantalla está en construcción</Text>
       </View>
+
+      <BottomNav active={activeTab} onNavigate={onNavigate} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.card },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 16,
-  },
-  backArrow: { fontSize: 22, color: colors.bottleGreen },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: colors.bottleGreen },
   content: {
     flex: 1,
     alignItems: 'center',

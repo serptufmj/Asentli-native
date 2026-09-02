@@ -6,12 +6,37 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
+import { useUser } from '@clerk/clerk-expo';
 import { colors } from '../theme/colors';
 
 export default function TermsScreen({ onAccept }) {
+  const { user } = useUser();
   const [accepted, setAccepted] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleContinue = async () => {
+    if (!accepted || saving) return;
+    setError('');
+    setSaving(true);
+    try {
+      // Persisted on the Clerk user so Terms is skipped on every future login.
+      await user?.update({
+        unsafeMetadata: {
+          ...(user?.unsafeMetadata ?? {}),
+          acceptedTerms: true,
+          acceptedTermsAt: new Date().toISOString(),
+        },
+      });
+      onAccept?.();
+    } catch (e) {
+      setError('No se pudo guardar tu aceptación. Revisá tu conexión e intentá de nuevo.');
+      setSaving(false);
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -82,15 +107,21 @@ export default function TermsScreen({ onAccept }) {
         <Text style={styles.checkboxLabel}>Do not show again</Text>
       </TouchableOpacity>
 
+      {!!error && <Text style={styles.errorText}>{error}</Text>}
+
       <TouchableOpacity
         style={[
           styles.continueButton,
-          !accepted && styles.continueButtonDisabled,
+          (!accepted || saving) && styles.continueButtonDisabled,
         ]}
-        disabled={!accepted}
-        onPress={onAccept}
+        disabled={!accepted || saving}
+        onPress={handleContinue}
       >
-        <Text style={styles.continueText}>Continue</Text>
+        {saving ? (
+          <ActivityIndicator color={colors.card} />
+        ) : (
+          <Text style={styles.continueText}>Continue</Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -178,6 +209,11 @@ const styles = StyleSheet.create({
   },
   continueButtonDisabled: {
     backgroundColor: colors.border,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 12,
+    marginBottom: 8,
   },
   continueText: {
     color: colors.card,

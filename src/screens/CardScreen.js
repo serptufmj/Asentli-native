@@ -6,41 +6,34 @@ import {
     StyleSheet,
     ScrollView,
     Image,
+    ActivityIndicator,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
+import ScreenHeader from '../components/ScreenHeader';
+import BottomNav from '../components/BottomNav';
+import EmptyState from '../components/EmptyState';
+import { useBudget, useMonthExpenses, useRecentExpenses } from '../hooks/useExpenseData';
+import { sumAmount } from '../lib/expenseMath';
+import { formatMoney, formatDateTime } from '../lib/dates';
+import { categoryLabel } from '../constants/categories';
 
-const movements = [
-    {
-        id: '1',
-        icon: '🛒',
-        name: 'Súper Selectos',
-        date: 'Today, 10:45 AM',
-        amount: '-$42.15',
-        tag: 'EXPENSE',
-        isExpense: true,
-    },
-    {
-        id: '2',
-        icon: '💳',
-        name: 'Wallet Top-Up',
-        date: 'Yesterday, 3:20 PM',
-        amount: '+$150.00',
-        tag: 'Deposit',
-        isExpense: false,
-    },
-];
+export default function CardScreen({ onBack, onNavigate }) {
+    const go = (key) => onNavigate && onNavigate(key);
 
-export default function CardScreen({ onBack }) {
+    const budgetQ = useBudget();
+    const monthQ = useMonthExpenses();
+    const recentQ = useRecentExpenses(5);
+
+    const loading = budgetQ.isLoading || monthQ.isLoading;
+    const monthlyTotal = budgetQ.data?.monthlyTotal ?? 0;
+    const spent = sumAmount(monthQ.data ?? []);
+    const available = monthlyTotal - spent;
+    const recent = recentQ.data ?? [];
+
     return (
         <View style={styles.flex}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={onBack}>
-                    <Text style={styles.backArrow}>←</Text>
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Asentli</Text>
-                <Text style={styles.bellIcon}>🔔</Text>
-            </View>
+            <ScreenHeader title="Asentli" onBack={onBack} onBell={() => go('notifications')} />
 
             <ScrollView contentContainerStyle={styles.content}>
                 <Text style={styles.greeting}>Hi, User</Text>
@@ -89,30 +82,46 @@ export default function CardScreen({ onBack }) {
                 </View>
 
                 {/* Pay basket button */}
-                <TouchableOpacity style={styles.payButton}>
-                    <Text style={styles.payIcon}>🧺</Text>
+                <TouchableOpacity style={styles.payButton} onPress={() => go('basket')}>
+                    <Ionicons name="basket" size={18} color={colors.card} style={{ marginRight: 8 }} />
                     <Text style={styles.payText}>Pay basket</Text>
                 </TouchableOpacity>
+
+                {/* Quick actions */}
+                <View style={styles.quickRow}>
+                    <TouchableOpacity style={styles.quickButton} onPress={() => go('priceComparer')}>
+                        <Ionicons name="swap-horizontal" size={18} color={colors.bottleGreen} />
+                        <Text style={styles.quickText}>Compare prices</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.quickButton} onPress={() => go('rewards')}>
+                        <Ionicons name="cash-outline" size={18} color={colors.bottleGreen} />
+                        <Text style={styles.quickText}>Cashback</Text>
+                    </TouchableOpacity>
+                </View>
 
                 {/* Balance card */}
                 <View style={styles.balanceCard}>
                     <Text style={styles.balanceLabel}>Available Balance</Text>
-                    <Text style={styles.balanceAmount}>$342.50</Text>
+                    {loading ? (
+                        <ActivityIndicator color={colors.bottleGreen} style={{ alignSelf: 'flex-start', marginVertical: 12 }} />
+                    ) : (
+                        <Text style={styles.balanceAmount}>{formatMoney(available)}</Text>
+                    )}
 
                     <View style={styles.movementRow}>
                         <View style={[styles.movementIconCircle, { backgroundColor: '#B9D89A' }]}>
                             <Text style={styles.movementIconText}>💰</Text>
                         </View>
                         <Text style={styles.movementLabel}>Income</Text>
-                        <Text style={styles.incomeAmount}>+$850</Text>
+                        <Text style={styles.incomeAmount}>{formatMoney(0)}</Text>
                     </View>
 
                     <View style={styles.movementRow}>
-                        <View style={[styles.movementIconCircle, { backgroundColor: '#FF9391'  }]}>
+                        <View style={[styles.movementIconCircle, { backgroundColor: '#FF9391' }]}>
                             <Text style={styles.movementIconText}>📉</Text>
                         </View>
-                        <Text style={styles.movementLabel}>Expenses</Text>
-                        <Text style={styles.expenseAmount}>-$507</Text>
+                        <Text style={styles.movementLabel}>Expenses (this month)</Text>
+                        <Text style={styles.expenseAmount}>-{formatMoney(spent)}</Text>
                     </View>
                 </View>
 
@@ -152,62 +161,51 @@ export default function CardScreen({ onBack }) {
                 {/* Recent Movements */}
                 <View style={styles.sectionHeaderRow}>
                     <Text style={styles.sectionTitle}>Recent Movements</Text>
-                    <Text style={styles.seeAll}>See all</Text>
+                    <TouchableOpacity onPress={() => go('purchaseHistory')}>
+                        <Text style={styles.seeAll}>See all</Text>
+                    </TouchableOpacity>
                 </View>
 
-                {movements.map((m) => (
-                    <View key={m.id} style={styles.movementCard}>
-                        <View style={styles.movementCardIcon}>
-                            <Text style={{ fontSize: 18 }}>{m.icon}</Text>
-                        </View>
-                        <View style={styles.movementCardInfo}>
-                            <Text style={styles.movementCardName}>{m.name}</Text>
-                            <Text style={styles.movementCardDate}>{m.date}</Text>
-                        </View>
-                        <View style={styles.movementCardRight}>
-                            <Text
-                                style={
-                                    m.isExpense ? styles.movementCardAmountExpense : styles.movementCardAmountIncome
-                                }
-                            >
-                                {m.amount}
-                            </Text>
-                            <View
-                                style={[
-                                    styles.movementTag,
-                                    { backgroundColor: m.isExpense ? colors.lightGreen : 'transparent' },
-                                ]}
-                            >
-                                <Text
-                                    style={[
-                                        styles.movementTagText,
-                                        { color: m.isExpense ? colors.text : colors.textLight },
-                                    ]}
-                                >
-                                    {m.tag}
+                {recentQ.isLoading ? (
+                    <ActivityIndicator color={colors.primary} style={{ marginTop: 8 }} />
+                ) : recent.length === 0 ? (
+                    <EmptyState
+                        compact
+                        title="Sin movimientos todavía"
+                        subtitle="Tus gastos registrados van a aparecer acá."
+                    />
+                ) : (
+                    recent.map((m) => (
+                        <View key={m.id} style={styles.movementCard}>
+                            <View style={styles.movementCardIcon}>
+                                <Text style={{ fontSize: 18 }}>🛒</Text>
+                            </View>
+                            <View style={styles.movementCardInfo}>
+                                <Text style={styles.movementCardName}>
+                                    {m.merchant || categoryLabel(m.category)}
                                 </Text>
+                                <Text style={styles.movementCardDate}>{formatDateTime(m.spent_at)}</Text>
+                            </View>
+                            <View style={styles.movementCardRight}>
+                                <Text style={styles.movementCardAmountExpense}>-{formatMoney(m.amount)}</Text>
+                                <View style={[styles.movementTag, { backgroundColor: colors.lightGreen }]}>
+                                    <Text style={[styles.movementTagText, { color: colors.text }]}>
+                                        {categoryLabel(m.category)}
+                                    </Text>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                ))}
+                    ))
+                )}
             </ScrollView>
+
+            <BottomNav active="Home" onNavigate={onNavigate} />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     flex: { flex: 1, backgroundColor: colors.card },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 50,
-        paddingBottom: 16,
-    },
-    backArrow: { fontSize: 22, color: colors.bottleGreen },
-    headerTitle: { fontSize: 20, fontWeight: '800', color: colors.bottleGreen },
-    bellIcon: { fontSize: 20 },
 
     content: { paddingHorizontal: 20, paddingBottom: 40 },
 
@@ -273,10 +271,23 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 20,
+        marginBottom: 12,
     },
-    payIcon: { fontSize: 16, marginRight: 8 },
     payText: { color: colors.card, fontSize: 16, fontWeight: '700' },
+
+    quickRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+    quickButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 16,
+        paddingVertical: 14,
+    },
+    quickText: { fontSize: 13, fontWeight: '700', color: colors.bottleGreen },
 
     balanceCard: {
         backgroundColor: colors.balanceGreen,
@@ -380,12 +391,6 @@ const styles = StyleSheet.create({
     movementCardName: { fontSize: 15, fontWeight: '700', color: colors.text },
     movementCardDate: { fontSize: 12, color: colors.textLight, marginTop: 2 },
     movementCardRight: { alignItems: 'flex-end' },
-    movementCardAmountIncome: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: colors.saladGreen,
-        marginBottom: 4,
-    },
     movementCardAmountExpense: {
         fontSize: 14,
         fontWeight: '700',

@@ -9,15 +9,27 @@ import {
   Platform,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSignIn } from '@clerk/clerk-expo';
 import { colors } from '../theme/colors';
+import { clerkErrorMessage } from '../lib/clerkErrors';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import GoogleButton from '../components/GoogleButton';
 
-export default function LoginScreen({ onLoginSuccess }) {
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export default function LoginScreen({ onForgotPassword, onSignUp }) {
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const { signInWithGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -31,8 +43,8 @@ export default function LoginScreen({ onLoginSuccess }) {
 
     if (!password) {
       newErrors.password = 'La contraseña es obligatoria';
-    } else if (password.length < 8) {
-      newErrors.password = 'Debe tener al menos 8 caracteres';
+    } else if (password.length < 6) {
+      newErrors.password = 'Debe tener al menos 6 caracteres';
     }
 
     setErrors(newErrors);
@@ -46,24 +58,17 @@ export default function LoginScreen({ onLoginSuccess }) {
   };
 
   return (
-    <LinearGradient
-      colors={[colors.gradientTop, colors.gradientBottom]}
-      style={styles.flex}
-    >
+    <LinearGradient colors={[colors.gradientTop, colors.gradientBottom]} style={styles.flex}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.container}>
-          {/* Logo */}
-          <Image
-            source={require('../../assets/asentli-logo.jpg')}
-            style={styles.logo}
-          />
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <Image source={require('../../assets/asentli-logo.jpg')} style={styles.logo} />
 
           <Text style={styles.title}>Welcome to Asentli</Text>
           <Text style={styles.subtitle}>Fintech familiar</Text>
-          {/* Card */}
+
           <View style={styles.card}>
             <View style={styles.field}>
               <Text style={styles.label}>Email</Text>
@@ -85,7 +90,7 @@ export default function LoginScreen({ onLoginSuccess }) {
             <View style={styles.field}>
               <View style={styles.passwordHeader}>
                 <Text style={styles.label}>Password</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={onForgotPassword}>
                   <Text style={styles.forgotLink}>Forgot password?</Text>
                 </TouchableOpacity>
               </View>
@@ -103,13 +108,21 @@ export default function LoginScreen({ onLoginSuccess }) {
                   <Text style={styles.icon}>{showPassword ? '🙈' : '👁️'}</Text>
                 </TouchableOpacity>
               </View>
-              {errors.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
-              )}
+              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
             </View>
 
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>GO!  →</Text>
+            {!!formError && <Text style={styles.formError}>{formError}</Text>}
+
+            <TouchableOpacity
+              style={[styles.button, submitting && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator color={colors.card} />
+              ) : (
+                <Text style={styles.buttonText}>GO!  →</Text>
+              )}
             </TouchableOpacity>
 
             <View style={styles.dividerRow}>
@@ -118,19 +131,13 @@ export default function LoginScreen({ onLoginSuccess }) {
               <View style={styles.dividerLine} />
             </View>
 
-            <View style={styles.socialRow}>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialIcon}>G</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <Text style={styles.socialIcon}>⊞</Text>
-              </TouchableOpacity>
-            </View>
+            <GoogleButton onPress={signInWithGoogle} loading={googleLoading} />
+            {!!googleError && <Text style={styles.formError}>{googleError}</Text>}
           </View>
 
           <View style={styles.signupRow}>
             <Text style={styles.signupText}>Don't have an account? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={onSignUp}>
               <Text style={styles.signupLink}>Sign up for free</Text>
             </TouchableOpacity>
           </View>
@@ -149,12 +156,12 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   logo: {
-  width: 110,
-  height: 110,
-  borderRadius: 55,
-  resizeMode: 'cover',
-  marginBottom: 20,
-  marginLeft: 100,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    resizeMode: 'cover',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   subtitle: {
     fontSize: 13,
@@ -165,7 +172,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     textAlign: 'center',
-    marginBottom: 28,
+    marginBottom: 6,
   },
   card: {
     backgroundColor: colors.card,
@@ -216,6 +223,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
+  formError: {
+    color: colors.error,
+    fontSize: 13,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
   button: {
     backgroundColor: colors.primary,
     borderRadius: 12,
@@ -223,6 +236,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  buttonDisabled: { opacity: 0.6 },
   buttonText: {
     color: colors.card,
     fontSize: 15,
@@ -243,21 +257,6 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     marginHorizontal: 10,
   },
-  socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  socialButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialIcon: { fontSize: 18, fontWeight: '700', color: colors.text },
   signupRow: {
     flexDirection: 'row',
     justifyContent: 'center',
