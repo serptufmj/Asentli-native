@@ -12,9 +12,8 @@ import {
 } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 
-import { auth } from "../config/firebase";
+import { supabase } from "../config/supabase";
 import { colors } from "../theme/colors";
 
 export default function RegisterScreen({ onRegisterSuccess }) {
@@ -56,14 +55,12 @@ export default function RegisterScreen({ onRegisterSuccess }) {
     }
 
     try {
-      const userCredential =
-        await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password
+      });
 
-      const user = userCredential.user;
+      const user = data.user;
 
       console.log(user);
 

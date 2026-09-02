@@ -31,8 +31,8 @@ export default function LoginScreen({ onLoginSuccess }) {
 
     if (!password) {
       newErrors.password = 'La contraseña es obligatoria';
-    } else if (password.length < 6) {
-      newErrors.password = 'Debe tener al menos 6 caracteres';
+    } else if (password.length < 8) {
+      newErrors.password = 'Debe tener al menos 8 caracteres';
     }
 
     setErrors(newErrors);
